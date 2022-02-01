@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<style type="text/css">
+			@page {
+				size: A4;
+				margin-left: 0.2cm;
+				margin-right: 0.2cm;
+				margin-top: 0.2cm;
+				/*margin-bottom: 40px;*/
+			}
+
+			h1,
+			h2,
+			h3,
+			h4,
+			h5,
+			h6,
+			table,
+			td,
+			span,
+			strong,
+			div {
+				font-family: Arial, Helvetica, sans-serif;
+			}
+
+			.receipts {
+				border-collapse: collapse;
+				border-top: 1px solid black;
+			}
+
+			.receipts tr {
+				border-bottom: 1px solid black;
+			}
+
+			.receipts tr td {
+				text-align: center;
+				vertical-align: top;
+				max-width: 200px;
+			}
+
+			.taxReturn {
+				position: absolute;
+				height: 100%;
+				width: 100%;
+				border-collapse: collapse;
+				text-align: right;
+			}
+
+			.taxReturn tr td:nth-child(2) {
+				text-align: left;
+			}
+
+			.taxReturn tr:last-of-type td:last-child,
+			.taxReturn tr:last-of-type td:nth-last-child(2) {
+				text-align: right;
+			}
+
+			.taxReturn tr:not(.borderless) td {
+				border-bottom: 1px solid black;
+			}
+
+			.vatCalculation p:first-child {
+				text-align: right;
+				margin-right: 3%;
+				padding: 50px 20px 20px 0;
+			}
+
+			.vatCalculation p:nth-of-type(2) {
+				margin-bottom: -1px;
+			}
+
+			.vatCalculation p:last-child {
+				margin-left: 2.5%;
+				margin-right: 2.5%;
+			}
+
+			.vatCalculation h4, .vatCalculation p {
+				text-align: center;
+			}
+
+			.grayBackground {
+				background-color: #d3d3d2;
+			}
+
+			#tableApplicant {
+				margin: 50px auto 25px;
+				width: 92.5%;
+				border-collapse: collapse;
+			}
+
+			#tableApplicant tr th:first-child {
+				width: 30%;
+				min-width: 30%;
+				max-width: 30%;
+			}
+
+			#tableApplicant tr td,
+			#tableApplicant tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			.vatCalculation p:nth-of-type(2) {
+				text-align: right;
+				margin-right: 3%;
+			}
+
+			#table1 {
+				margin: 0 auto 25px;
+				width: 95%;
+				border-collapse: collapse;
+				border: 2px solid black;
+			}
+
+			#table1 tr th:first-child {
+				width: 80%;
+				min-width: 80%;
+				max-width: 80%;
+			}
+
+			#table1 tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			#table1 tr td {
+				text-align: left;
+				border-right: 2px solid black;
+				border-left: 2px solid black;
+				border-top: 1px solid black;
+				padding-left: 10px;
+				padding-right: 5px;
+			}
+
+			#table1 tr td:first-child {
+				width: 5%;
+				text-align: right;
+			}
+
+			#table2 {
+				margin: 0 auto 25px;
+				width: 95%;
+				border-collapse: collapse;
+				border: 2px solid black;
+			}
+
+			#table2 tr th:first-child {
+				width: 80%;
+				min-width: 80%;
+				max-width: 80%;
+			}
+
+			#table2 tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			#table2 tr td {
+				text-align: left;
+				border-right: 2px solid black;
+				border-left: 2px solid black;
+				border-top: 1px solid black;
+				padding-left: 10px;
+				padding-right: 5px;
+			}
+
+			#table2 tr td:first-child {
+				width: 5%;
+				text-align: right;
+			}
+
+			#table3 {
+				margin: 0 auto 50px;
+				width: 95%;
+				border-collapse: collapse;
+				border: 2px solid black;
+			}
+
+			#table3 .tableHeader {
+				width: 80%;
+				min-width: 80%;
+				max-width: 80%;
+			}
+
+			#table3 tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			#table3 tr td {
+				text-align: left;
+				border-right: 2px solid black;
+				border-top: 1px solid black;
+				padding-left: 10px;
+				padding-right: 5px;
+			}
+
+			#table3 tr td:nth-last-child(2),
+			#table3 tr td:nth-last-child(3),
+			#table3 tr td:nth-last-child(4) {
+				border-right: 1px solid black;
+			}
+
+
+			#table3 tr td:first-child {
+				width: 5%;
+				text-align: right;
+			}
+
+			#table3a {
+				margin: 0 auto 25px;
+				width: 95%;
+				border-collapse: collapse;
+				border: 2px solid black;
+			}
+
+			#table3a .tableHeader {
+				width: 67.5%;
+				min-width: 67.5%;
+				max-width: 67.5%;
+			}
+
+			#table3a tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			#table3a tr td {
+				text-align: left;
+				border-right: 2px solid black;
+				border-top: 1px solid black;
+				padding-left: 10px;
+				padding-right: 5px;
+			}
+
+			#table3a tr td:nth-last-child(2) {
+				border-right: 1px solid black;
+			}
+
+
+			#table3a tr td:first-child {
+				width: 5%;
+				text-align: right;
+			}
+
+			#table4 {
+				margin: 0 auto 25px;
+				width: 95%;
+				border-collapse: collapse;
+				border: 2px solid black;
+			}
+
+			#table4 .tableHeader {
+				width: 55%;
+				min-width: 55%;
+				max-width: 55%;
+			}
+
+			#table4 tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			#table4 tr td {
+				text-align: left;
+				border-right: 2px solid black;
+				border-top: 1px solid black;
+				padding-left: 10px;
+				padding-right: 5px;
+			}
+
+			#table4 tr td:nth-child(3),
+			#table4 tr td:nth-child(4),
+			#table4 tr td:nth-child(5),
+			#table4 tr td:nth-child(6) {
+				border-right: 1px solid black;
+			}
+
+
+			#table4 tr td:first-child {
+				width: 5%;
+				text-align: right;
+			}
+
+			#table5 {
+				margin: 0 auto 25px;
+				width: 95%;
+				border-collapse: collapse;
+				border: 2px solid black;
+			}
+
+			#table5 .tableHeader {
+				width: 77.5%;
+				min-width: 77.5%;
+				max-width: 77.5%;
+			}
+
+			#table5 tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			#table5 tr td {
+				text-align: left;
+				border-right: 2px solid black;
+				border-top: 1px solid black;
+				padding-left: 10px;
+				padding-right: 5px;
+			}
+
+			#table5 tr td:first-child {
+				width: 5%;
+				text-align: right;
+			}
+
+			#table6 {
+				margin: 0 auto 25px;
+				width: 95%;
+				border-collapse: collapse;
+				border: 2px solid black;
+			}
+
+			#table6 .tableHeader {
+				width: 50%;
+				min-width: 50%;
+				max-width: 50%;
+			}
+
+			#table6 tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			#table6 tr td {
+				text-align: left;
+				border-right: 2px solid black;
+				border-top: 1px solid black;
+				padding-left: 10px;
+				padding-right: 5px;
+			}
+
+			#table6 tr td:first-child {
+				width: 5%;
+				text-align: right;
+			}
+
+			#table7 {
+				margin: 0 auto 25px;
+				width: 95%;
+				border-collapse: collapse;
+				border: 2px solid black;
+			}
+
+			#table7 .tableHeader {
+				width: 70%;
+				min-width: 70%;
+				max-width: 70%;
+			}
+
+			#table7 tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			#table7 tr td {
+				text-align: left;
+				border-right: 2px solid black;
+				border-top: 1px solid black;
+				padding-left: 10px;
+				padding-right: 5px;
+			}
+
+			#table7 tr td:first-child {
+				width: 5%;
+				text-align: right;
+			}
+
+			#table7 tr td:nth-last-child(2) {
+				border-right: 1px solid black;
+			}
+
+			#table7 tr:last-child {
+				border-top: 2px solid black;
+			}
+
+			#table8 {
+				margin: 0 auto 25px;
+				width: 95%;
+				border-collapse: collapse;
+				border: 2px solid black;
+			}
+
+			#table8 .tableHeader {
+				width: 50%;
+				min-width: 50%;
+				max-width: 50%;
+			}
+
+			#table8 tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			#table8 tr td {
+				text-align: left;
+				border-right: 2px solid black;
+				border-top: 1px solid black;
+				padding-left: 10px;
+				padding-right: 5px;
+			}
+
+			#table8 tr td:nth-child(3),
+			#table8 tr td:nth-child(4),
+			#table8 tr td:nth-child(5),
+			#table8 tr td:nth-child(6) {
+				border-right: 1px solid black;
+			}
+
+			#table8 tr td:first-child {
+				width: 5%;
+				text-align: right;
+			}
+
+			#table8 #cellDj {
+				text-align: left;
+			}
+
+			#table9 {
+				margin: 0 auto 25px;
+				width: 95%;
+				border-collapse: collapse;
+				border: 2px solid black;
+			}
+
+			#table9 tr th:first-child {
+				width: 77.5%;
+				min-width: 77.5%;
+				max-width: 77.5%;
+			}
+
+			#table9 tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			#table9a {
+				margin: 0 auto 25px;
+				width: 95%;
+				border-collapse: collapse;
+				border: 2px solid black;
+			}
+
+			#table9a tr th:first-child {
+				width: 77.5%;
+				min-width: 77.5%;
+				max-width: 77.5%;
+			}
+
+			#table9a tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			#table9a tr td {
+				text-align: left;
+				border-right: 2px solid black;
+				border-left: 2px solid black;
+				border-top: 1px solid black;
+				padding-left: 10px;
+				padding-right: 5px;
+			}
+
+			#table9a tr td:first-child {
+				width: 5%;
+				text-align: right;
+			}
+
+			#table10 {
+				margin: 0 auto 25px;
+				width: 95%;
+				border-collapse: collapse;
+				border: 2px solid black;
+			}
+
+			#table10 tr th:first-child {
+				width: 77.5%;
+				min-width: 77.5%;
+				max-width: 77.5%;
+			}
+
+			#table10 tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			#table11 {
+				margin: 0 auto;
+				width: 95%;
+				border-collapse: collapse;
+				border: 2px solid black;
+			}
+
+			#table11 tr th:first-child {
+				width: 77.5%;
+				min-width: 77.5%;
+				max-width: 77.5%;
+			}
+
+			#table11 tr th {
+				text-align: center;
+				border: 2px solid black;
+				padding: 10px;
+			}
+
+			#table11 tr td {
+				text-align: left;
+				border-right: 2px solid black;
+				border-left: 2px solid black;
+				border-top: 1px solid black;
+				padding-left: 10px;
+				padding-right: 5px;
+			}
+
+			#table11 tr td:first-child {
+				width: 5%;
+				text-align: right;
+			}
+
+			.footer {
+				line-height: 22px;
+				/*padding-bottom: 50px 0 0;*/
+				text-align: center;
+			}
+
+			.productListContainer {
+				padding: 0 10px;
+			}
+
+			.productList,
+			.productList td,
+			.payementMethod {
+				border: 1px solid #ccc;
+				border-collapse: collapse;
+			}
+
+			.infoTitle {
+				font-size: 16px;
+			}
+
+			.totalAmount {
+				background-color: #ddd;
+			}
+
+			.totalAmount span {
+				font-size: 16px;
+			}
+
+			.company td {
+				font-size: 14px;
+				line-height: 18px;
+				border: none;
+			}
+
+			td.documentTitle {
+				font-size: 28px;
+			}
+
+			.vatTitle {
+				display: block;
+				/*float: right;*/
+				font-size: 16px;
+				font-weight: 800;
+				width: 100%;
+			}
+
+			td.chapeau {
+				background-color: #ddd;
+				font-size: 14px;
+				padding-bottom: 20px;
+			}
+
+			.priceInfo {
+				display: block;
+				float: right;
+				margin-right: 50px;
+			}
+
+			.border-grey {
+				border: 1px solid #ddd;
+			}
+
+			.border-b-grey {
+				border-bottom: 1px solid #ddd;
+			}
+
+			.fright {
+				float: right;
+			}
+
+			.underline {
+				border-bottom: 1px solid black;
+				width: 100%;
+				display: block;
+				margin-bottom: 10px;
+			}
+
+			.headerDiv {
+				display: flex;
+				margin: 20px 0;
+			}
+
+			.headerDiv div:first-child {
+				flex: 0 0 50%;
+				margin-left: 50px;
+			}
+
+			.headerDiv div:nth-child(2) {
+				flex: 0 0 30%;
+				margin-left: 50px;
+			}
+
+			.noMargin > * {
+				margin: 0;
+			}
+
+			.borderBlack {
+				border: 1px solid black;
+			}
+
+			.bottomDottedBorder {
+				border-bottom: 1px dotted black;
+			}
+
+			.topBorder {
+				border-top: 1px solid black;
+			}
+
+			.topBorder2px {
+				border-top: 2px solid black;
+			}
+
+			.bolded > * {
+				font-weight: bold;
+			}
+
+			.bottomDoubleBorder {
+				border-bottom: 5px double black;
+			}
+
+			.borderBottom {
+				border-bottom: 1px solid black;
+			}
+
+			.signature {
+				margin-top: 100px;
+				padding: 0 10px;
+				display: flex;
+				justify-content: space-between;
+			}
+
+			.signature > div {
+				text-align: center;
+				border-top: solid 1px black;
+				width: 450px;
+			}
+
+			@media print {
+				.pagebreak {
+					page-break-before: always;
+				}
+			}
+
+			.payrateCalculation tr td {
+				border: 1px solid black;
+				vertical-align: top;
+			}
+
+			.payrateCalculation .paddingLeft {
+				padding-left: 25px;
+			}
+		</style>
+	</head>
+
+	<body>
+		{% block content %}{% endblock %}
+	</body>
+</html>

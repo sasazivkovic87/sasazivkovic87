@@ -1,0 +1,29 @@
+# see https://symfony.com/doc/current/reference/configuration/framework.html
+framework:
+    secret: '%env(APP_SECRET)%'
+    #csrf_protection: true
+    #http_method_override: true
+
+    # Enables session support. Note that the session will ONLY be started if you read or write from it.
+    # Remove or comment this section to explicitly disable session support.
+    session:
+        handler_id: null
+        cookie_secure: auto
+        cookie_samesite: lax
+
+    #esi: true
+    #fragments: true
+    php_errors:
+        log: true
+
+    http_client:
+#        base_uri: 'https://vsdc.sandbox.taxcore.online'
+        default_options:
+            headers:
+                'Content-Type': 'application/json'
+#            verify_peer: false,
+#            verify_host: false,
+            cafile: '%kernel.project_dir%/config/certificate/DeveloperAuthenticationCertificate.pfx'
+#            local_pk: '/home/virtev/projects/Aktiv/POS/aktivPosBackend/config/certificate/DeveloperAuthenticationCertificate.pfx'
+#            capath: '%kernel.project_dir%/config/certificate'
+#            capath: '/home/virtev/projects/Aktiv/POS/aktivPosBackend/config/certificate/CA.cer'

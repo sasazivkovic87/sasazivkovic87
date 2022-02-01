@@ -1,0 +1,59 @@
+security:
+    encoders:
+        App\Entity\User\User:
+            algorithm: argon2i
+
+    # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
+    providers:
+        # used to reload user from session & other features (e.g. switch_user)
+        app_user_provider:
+            entity:
+                class: App\Entity\User\User
+                property: email
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+        refresh:
+            pattern:  ^/api/token/refresh
+            stateless: true
+            anonymous: true
+        api_login:
+            pattern: ^/api/authentication_token
+            anonymous: true
+            logout:
+                path: api_logout
+            json_login:
+                check_path: /api/authentication_token
+                username_path: email
+                password_path: password
+                success_handler: authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+            guard:
+                authenticators:
+                    - lexik_jwt_authentication.jwt_token_authenticator
+                    - App\Security\LoginAuthenticator
+                entry_point: lexik_jwt_authentication.jwt_token_authenticator
+        main:
+            pattern: ^/api
+            stateless: true
+            anonymous: true
+            guard:
+                authenticators:
+                    - lexik_jwt_authentication.jwt_token_authenticator
+
+            # activate different ways to authenticate
+            # https://symfony.com/doc/current/security.html#firewalls-authentication
+
+            # https://symfony.com/doc/current/security/impersonating_user.html
+            # switch_user: true
+
+    # Easy way to control access for large sections of your site
+    # Note: Only the *first* access control that matches will be used
+    access_control:
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/api/users$, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
+        - { path: ^/api/authentication_token, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/add-user-password, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/api/token/refresh, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/api/*, roles: IS_AUTHENTICATED_FULLY }
