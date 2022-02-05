@@ -4,11 +4,13 @@ namespace App\EventSubscriber;
 
 use ApiPlatform\Core\EventListener\EventPriorities;
 use App\Entity\User\User;
+use App\Entity\Invoice\Invoice;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use App\Service\CsdService;
 
 final class PostWriteSubscriber implements EventSubscriberInterface
 {
@@ -16,10 +18,12 @@ final class PostWriteSubscriber implements EventSubscriberInterface
     private $tokenStorage;
 
     public function __construct(
-        TokenStorageInterface $tokenStorage
+        TokenStorageInterface $tokenStorage,
+        CsdService $csdService
     )
     {
         $this->tokenStorage = $tokenStorage;
+        $this->csdService = $csdService;
     }
 
     /**
@@ -51,12 +55,11 @@ final class PostWriteSubscriber implements EventSubscriberInterface
         }
 
         // All POST requests
-        if (Request::METHOD_POST === $method || Request::METHOD_PUT === $method) {
-
+        if (Request::METHOD_POST === $method) {
+            if ($object instanceof Invoice) {
+                $this->csdService->createCsdResponse($object);
+            }
         }
 
-        if (Request::METHOD_PATCH === $method) {
-
-        }
     }
 }

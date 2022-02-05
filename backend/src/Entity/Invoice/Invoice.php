@@ -20,12 +20,9 @@ use Gedmo\Mapping\Annotation as Gedmo;
  *
  * @ORM\Entity(repositoryClass=InvoiceRepository::class)
  *
- * @Gedmo\SoftDeleteable()
  */
 class Invoice
 {
-    use SoftDeleteableEntity;
-
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -94,6 +91,11 @@ class Invoice
      * @Groups({"invoice", "invoice_post"})
      */
     private $payment;
+
+    /**
+     * @ORM\OneToOne(targetEntity=EcsdResponse::class, mappedBy="invoice", cascade={"persist", "remove"}, orphanRemoval=true)
+     */
+    private $ecsdResponse;
 
     public function __construct()
     {
@@ -267,6 +269,18 @@ class Invoice
                 $invoicePayment->setInvoice(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEcsdResponse(): ?EcsdResponse
+    {
+        return $this->ecsdResponse;
+    }
+
+    public function setEcsdResponse(?EcsdResponse $ecsdResponse): self
+    {
+        $this->ecsdResponse = $ecsdResponse;
 
         return $this;
     }

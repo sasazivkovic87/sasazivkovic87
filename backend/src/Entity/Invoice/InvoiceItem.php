@@ -27,7 +27,6 @@ class InvoiceItem
     /**
      * @ORM\ManyToOne(targetEntity=Invoice::class, inversedBy="items")
      * @ORM\JoinColumn(name="invoice_id", referencedColumnName="id", onDelete="CASCADE")
-     * @Groups({"invoice_item"})
      */
     private $invoice;
 
@@ -54,6 +53,12 @@ class InvoiceItem
      * @Groups({"invoice_item"})
      */
     private $totalAmount;
+
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     * @Groups({"invoice_item"})
+     */
+    private $labels;
 
     public function getId(): ?int
     {
@@ -123,6 +128,18 @@ class InvoiceItem
     public function setTotalAmount(string $totalAmount): self
     {
         $this->totalAmount = $totalAmount;
+
+        return $this;
+    }
+
+    public function getLabels(): ?array
+    {
+        return $this->labels;
+    }
+
+    public function setLabels($labels): self
+    {
+        $this->labels = $labels;
 
         return $this;
     }

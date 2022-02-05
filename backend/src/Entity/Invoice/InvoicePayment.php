@@ -27,7 +27,6 @@ class InvoicePayment
     /**
      * @ORM\ManyToOne(targetEntity=Invoice::class, inversedBy="items")
      * @ORM\JoinColumn(name="invoice_id", referencedColumnName="id", onDelete="CASCADE")
-     * @Groups({"invoice_payment"})
      */
     private $invoice;
 

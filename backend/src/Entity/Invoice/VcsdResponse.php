@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ApiResource()
  * @ORM\Entity(repositoryClass=CsdResponseRepository::class)
  */
-class CsdResponse
+class VcsdResponse
 {
     /**
      * @ORM\Id
