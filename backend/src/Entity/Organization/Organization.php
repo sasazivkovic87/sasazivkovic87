@@ -23,7 +23,7 @@ class Organization
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
-     * @Groups({"organization"})
+     * @Groups({"organization", "organization_post"})
      */
     private $id;
 
@@ -88,8 +88,7 @@ class Organization
     private $supportedLanguages;
 
     /**
-     * @ORM\OneToMany(targetEntity=User::class, mappedBy="user", cascade={"persist"})
-     * @Groups({"organization"})
+     * @ORM\OneToMany(targetEntity=User::class, mappedBy="organization", cascade={"persist"})
      */
     private $users;
 
@@ -226,7 +225,7 @@ class Organization
     /**
      * @return Collection|User[]
      */
-    public function getUsers(): Collection
+    public function getUsers()
     {
         return $this->users;
     }
