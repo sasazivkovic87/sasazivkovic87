@@ -62,12 +62,6 @@ class User implements UserInterface
      */
     private $centralId;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Organization::class, inversedBy="users")
-     * @ORM\JoinColumn(name="organization_id", referencedColumnName="id", onDelete="CASCADE")
-     */
-    private $organization;
-
     public function getSalt() { }
 
     public function getUsername(): string
@@ -154,18 +148,6 @@ class User implements UserInterface
     public function setCentralId(int $centralId): self
     {
         $this->centralId = $centralId;
-
-        return $this;
-    }
-
-    public function getOrganization(): ?Organization
-    {
-        return $this->organization;
-    }
-
-    public function setOrganization(?Organization $organization): self
-    {
-        $this->organization = $organization;
 
         return $this;
     }

@@ -87,15 +87,6 @@ class Organization
      */
     private $supportedLanguages;
 
-    /**
-     * @ORM\OneToMany(targetEntity=User::class, mappedBy="organization", cascade={"persist"})
-     */
-    private $users;
-
-    public function __construct()
-    {
-        $this->users = new ArrayCollection();
-    }
 
     public function getId(): ?int
     {
@@ -218,24 +209,6 @@ class Organization
     public function setSupportedLanguages($supportedLanguages): self
     {
         $this->supportedLanguages = $supportedLanguages;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|User[]
-     */
-    public function getUsers()
-    {
-        return $this->users;
-    }
-
-    public function addUser(User $user): self
-    {
-        if (!$this->users->contains($user)) {
-            $this->users[] = $user;
-            $user->setOrganization($this);
-        }
 
         return $this;
     }
