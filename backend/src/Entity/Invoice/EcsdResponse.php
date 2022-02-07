@@ -4,12 +4,12 @@ namespace App\Entity\Invoice;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use App\Entity\Invoice\Invoice;
-use App\Repository\Invoice\CsdResponseRepository;
+use App\Repository\Invoice\EcsdResponseRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ApiResource()
- * @ORM\Entity(repositoryClass=CsdResponseRepository::class)
+* @ORM\Entity(repositoryClass=EcsdResponseRepository::class)
  */
 class EcsdResponse
 {
@@ -142,7 +142,7 @@ class EcsdResponse
 
     /**
      * @ORM\OneToOne(targetEntity=Invoice::class, inversedBy="ecsdResponse")
-     * @ORM\JoinColumn(name="invoice_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="invoice_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $invoice;
 
@@ -161,7 +161,7 @@ class EcsdResponse
         return $this->requestedBy;
     }
 
-    public function setRequestedBy(string $requestedBy): self
+    public function setRequestedBy(?string $requestedBy): self
     {
         $this->requestedBy = $requestedBy;
 
@@ -173,7 +173,7 @@ class EcsdResponse
         return $this->sdcDateTime;
     }
 
-    public function setSdcDateTime(string $sdcDateTime): self
+    public function setSdcDateTime(?string $sdcDateTime): self
     {
         $this->sdcDateTime = $sdcDateTime;
 
@@ -185,7 +185,7 @@ class EcsdResponse
         return $this->invoiceCounter;
     }
 
-    public function setInvoiceCounter(string $invoiceCounter): self
+    public function setInvoiceCounter(?string $invoiceCounter): self
     {
         $this->invoiceCounter = $invoiceCounter;
 
@@ -197,7 +197,7 @@ class EcsdResponse
         return $this->invoiceCounterExtension;
     }
 
-    public function setInvoiceCounterExtension(string $invoiceCounterExtension): self
+    public function setInvoiceCounterExtension(?string $invoiceCounterExtension): self
     {
         $this->invoiceCounterExtension = $invoiceCounterExtension;
 
@@ -209,16 +209,11 @@ class EcsdResponse
         return $this->invoiceNumber;
     }
 
-    public function setInvoiceNumber(string $invoiceNumber): self
+    public function setInvoiceNumber(?string $invoiceNumber): self
     {
         $this->invoiceNumber = $invoiceNumber;
 
         return $this;
-    }
-
-    public function getTaxItemCategoryType(): ?int
-    {
-        return $this->taxItemCategoryType;
     }
 
     public function getTaxItems(): ?array
@@ -238,7 +233,7 @@ class EcsdResponse
         return $this->verificationUrl;
     }
 
-    public function setVerificationUrl(string $verificationUrl): self
+    public function setVerificationUrl(?string $verificationUrl): self
     {
         $this->verificationUrl = $verificationUrl;
 
@@ -250,7 +245,7 @@ class EcsdResponse
         return $this->verificationQRCode;
     }
 
-    public function setVerificationQRCode(string $verificationQRCode): self
+    public function setVerificationQRCode(?string $verificationQRCode): self
     {
         $this->verificationQRCode = $verificationQRCode;
 
@@ -262,7 +257,7 @@ class EcsdResponse
         return $this->journal;
     }
 
-    public function setJournal(string $journal): self
+    public function setJournal(?string $journal): self
     {
         $this->journal = $journal;
 
@@ -274,7 +269,7 @@ class EcsdResponse
         return $this->messages;
     }
 
-    public function setMessages(string $messages): self
+    public function setMessages(?string $messages): self
     {
         $this->messages = $messages;
 
@@ -286,7 +281,7 @@ class EcsdResponse
         return $this->signedBy;
     }
 
-    public function setSignedBy(string $signedBy): self
+    public function setSignedBy(?string $signedBy): self
     {
         $this->signedBy = $signedBy;
 
@@ -310,7 +305,7 @@ class EcsdResponse
         return $this->signature;
     }
 
-    public function setSignature(string $signature): self
+    public function setSignature(?string $signature): self
     {
         $this->signature = $signature;
 
@@ -322,7 +317,7 @@ class EcsdResponse
         return $this->totalCounter;
     }
 
-    public function setTotalCounter(int $totalCounter): self
+    public function setTotalCounter(?int $totalCounter): self
     {
         $this->totalCounter = $totalCounter;
 
@@ -334,7 +329,7 @@ class EcsdResponse
         return $this->transactionTypeCounter;
     }
 
-    public function setTransactionTypeCounter(int $transactionTypeCounter): self
+    public function setTransactionTypeCounter(?int $transactionTypeCounter): self
     {
         $this->transactionTypeCounter = $transactionTypeCounter;
 
@@ -358,7 +353,7 @@ class EcsdResponse
         return $this->taxGroupRevision;
     }
 
-    public function setTaxGroupRevision(int $taxGroupRevision): self
+    public function setTaxGroupRevision(?int $taxGroupRevision): self
     {
         $this->taxGroupRevision = $taxGroupRevision;
 
@@ -370,7 +365,7 @@ class EcsdResponse
         return $this->businessName;
     }
 
-    public function setBusinessName(string $businessName): self
+    public function setBusinessName(?string $businessName): self
     {
         $this->businessName = $businessName;
 
@@ -382,7 +377,7 @@ class EcsdResponse
         return $this->tin;
     }
 
-    public function setTin(string $tin): self
+    public function setTin(?string $tin): self
     {
         $this->tin = $tin;
 
@@ -394,7 +389,7 @@ class EcsdResponse
         return $this->locationName;
     }
 
-    public function setLocationName(string $locationName): self
+    public function setLocationName(?string $locationName): self
     {
         $this->locationName = $locationName;
 
@@ -406,7 +401,7 @@ class EcsdResponse
         return $this->address;
     }
 
-    public function setAddress(string $address): self
+    public function setAddress(?string $address): self
     {
         $this->address = $address;
 
@@ -418,7 +413,7 @@ class EcsdResponse
         return $this->district;
     }
 
-    public function setDistrict(string $district): self
+    public function setDistrict(?string $district): self
     {
         $this->district = $district;
 
@@ -430,7 +425,7 @@ class EcsdResponse
         return $this->mrc;
     }
 
-    public function setMrc(string $mrc): self
+    public function setMrc(?string $mrc): self
     {
         $this->mrc = $mrc;
 
@@ -442,7 +437,7 @@ class EcsdResponse
         return json_decode($this->modelState, true);
     }
 
-    public function setModelState(array $modelState): self
+    public function setModelState(?array $modelState): self
     {
         $this->modelState = json_encode($modelState);
 
@@ -454,7 +449,7 @@ class EcsdResponse
         return $this->message;
     }
 
-    public function setMessage(string $message): self
+    public function setMessage(?string $message): self
     {
         $this->message = $message;
 

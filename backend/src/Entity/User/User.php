@@ -2,6 +2,7 @@
 
 namespace App\Entity\User;
 
+use App\Entity\Organization\Organization;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Symfony\Component\Security\Core\User\UserInterface;
 use App\Repository\User\UserRepository;
@@ -18,7 +19,6 @@ use App\Entity\Traits\TimestampTrait;
  */
 class User implements UserInterface
 {
-    use CompanyTrait;
     use TimestampTrait;
 
     /**
@@ -61,6 +61,12 @@ class User implements UserInterface
      * @ORM\Column(type="integer")
      */
     private $centralId;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Organization::class, inversedBy="users")
+     * @ORM\JoinColumn(name="organization_id", referencedColumnName="id", onDelete="CASCADE")
+     */
+    private $organization;
 
     public function getSalt() { }
 
@@ -152,4 +158,15 @@ class User implements UserInterface
         return $this;
     }
 
+    public function getOrganization(): ?Organization
+    {
+        return $this->organization;
+    }
+
+    public function setOrganization(?Organization $organization): self
+    {
+        $this->organization = $organization;
+
+        return $this;
+    }
 }

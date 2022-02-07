@@ -31,7 +31,7 @@ class InvoiceItem
     private $invoice;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      * @Groups({"invoice_item"})
      */
     private $name;
@@ -49,7 +49,13 @@ class InvoiceItem
     private $unitPrice;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups({"invoice_item"})
+     */
+    private $gtin;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
      * @Groups({"invoice_item"})
      */
     private $totalAmount;
@@ -140,6 +146,18 @@ class InvoiceItem
     public function setLabels($labels): self
     {
         $this->labels = $labels;
+
+        return $this;
+    }
+
+    public function getGtin(): ?string
+    {
+        return $this->gtin;
+    }
+
+    public function setGtin(?string $gtin): self
+    {
+        $this->gtin = $gtin;
 
         return $this;
     }

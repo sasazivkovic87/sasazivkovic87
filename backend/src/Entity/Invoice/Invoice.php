@@ -93,9 +93,14 @@ class Invoice
     private $payment;
 
     /**
-     * @ORM\OneToOne(targetEntity=EcsdResponse::class, mappedBy="invoice", cascade={"persist", "remove"}, orphanRemoval=true)
+     * @ORM\OneToOne(targetEntity=EcsdResponse::class, mappedBy="invoice", cascade={"persist"})
      */
     private $ecsdResponse;
+
+    /**
+     * @ORM\OneToOne(targetEntity=VcsdResponse::class, mappedBy="invoice", cascade={"persist"})
+     */
+    private $vcsdResponse;
 
     public function __construct()
     {
@@ -281,6 +286,18 @@ class Invoice
     public function setEcsdResponse(?EcsdResponse $ecsdResponse): self
     {
         $this->ecsdResponse = $ecsdResponse;
+
+        return $this;
+    }
+
+    public function getVcsdResponse(): ?VcsdResponse
+    {
+        return $this->vcsdResponse;
+    }
+
+    public function setVcsdResponse(?VcsdResponse $vcsdResponse): self
+    {
+        $this->vcsdResponse = $vcsdResponse;
 
         return $this;
     }

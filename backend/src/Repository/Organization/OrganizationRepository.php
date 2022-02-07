@@ -1,26 +1,26 @@
 <?php
 
-namespace App\Repository\Invoice;
+namespace App\Repository\Organization;
 
-use App\Entity\Invoice\CsdResponse;
+use App\Entity\Organization\Organization;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @method CsdResponse|null find($id, $lockMode = null, $lockVersion = null)
- * @method CsdResponse|null findOneBy(array $criteria, array $orderBy = null)
- * @method CsdResponse[]    findAll()
- * @method CsdResponse[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Organization|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Organization|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Organization[]    findAll()
+ * @method Organization[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class CsdResponseRepository extends ServiceEntityRepository
+class OrganizationRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, CsdResponse::class);
+        parent::__construct($registry, Organization::class);
     }
 
     // /**
-    //  * @return CsdResponse[] Returns an array of CsdResponse objects
+    //  * @return Organization[] Returns an array of Organization objects
     //  */
     /*
     public function findByExampleField($value)
@@ -37,7 +37,7 @@ class CsdResponseRepository extends ServiceEntityRepository
     */
 
     /*
-    public function findOneBySomeField($value): ?CsdResponse
+    public function findOneBySomeField($value): ?Organization
     {
         return $this->createQueryBuilder('c')
             ->andWhere('c.exampleField = :val')
