@@ -38,15 +38,7 @@ final class PreWriteSubscriber implements EventSubscriberInterface
         $object = $event->getControllerResult();
         $method = $event->getRequest()->getMethod();
 
-        $token = $this->tokenStorage->getToken();
-        if (!$token) {
-            return;
-        }
-
-        $user = $token->getUser();
-        if (!$user instanceof User) {
-            return;
-        }
+        $user = ($token = $this->tokenStorage->getToken()) ? $token->getUser() : null;
 
         // All POST requests
         if (Request::METHOD_POST === $method) {

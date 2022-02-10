@@ -23,6 +23,19 @@ use Gedmo\Mapping\Annotation as Gedmo;
  */
 class Invoice
 {
+    CONST INVOICE_TYPES = [
+        0 => 'Normal',
+        1 => 'Proforma',
+        2 => 'Copy',
+        3 => 'Training',
+        4 => 'Advance'
+    ];
+
+    CONST TRANSACTION_TYPES = [
+        0 => 'Sale',
+        1 => 'Refund'
+    ];
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -72,6 +85,18 @@ class Invoice
      * @Groups({"invoice", "invoice_post"})
      */
     private $invoiceNumber;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups({"invoice", "invoice_post"})
+     */
+    private $referentDocumentNumber;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups({"invoice", "invoice_post"})
+     */
+    private $referentDocumentDT;
 
     /**
      * @ORM\ManyToOne(targetEntity=InvoiceOption::class, inversedBy="invoices", cascade={"persist"})
@@ -204,6 +229,30 @@ class Invoice
         return $this;
     }
 
+    public function getReferentDocumentNumber(): ?string
+    {
+        return $this->referentDocumentNumber;
+    }
+
+    public function setReferentDocumentNumber(?string $referentDocumentNumber): self
+    {
+        $this->referentDocumentNumber = $referentDocumentNumber;
+
+        return $this;
+    }
+
+    public function getReferentDocumentDT(): ?string
+    {
+        return $this->referentDocumentDT;
+    }
+
+    public function setReferentDocumentDT(?string $referentDocumentDT): self
+    {
+        $this->referentDocumentDT = $referentDocumentDT;
+
+        return $this;
+    }
+
     public function getOptions(): ?InvoiceOption
     {
         return $this->options;
@@ -300,5 +349,87 @@ class Invoice
         $this->vcsdResponse = $vcsdResponse;
 
         return $this;
+    }
+
+    public function getInvoiceTypeId(): ?int
+    {
+        if (is_numeric($this->invoiceType) && in_array((int) $this->invoiceType, array_keys(self::INVOICE_TYPES))) {
+            return (int) $this->invoiceType;
+        }
+        elseif (isset(array_flip(self::INVOICE_TYPES)[$this->invoiceType])) {
+            return array_flip(self::INVOICE_TYPES)[$this->invoiceType];
+        }
+
+        return null;
+    }
+
+    public function getTransactionTypeId(): ?int
+    {
+        if (is_numeric($this->transactionType) && in_array((int) $this->transactionType, array_keys(self::TRANSACTION_TYPES))) {
+            return (int) $this->transactionType;
+        }
+        elseif (isset(array_flip(self::TRANSACTION_TYPES)[$this->transactionType])) {
+            return array_flip(self::TRANSACTION_TYPES)[$this->transactionType];
+        }
+
+        return null;
+    }
+
+    public function getInvoiceTypeExtension(): ?\stdClass
+    {
+        $invoiceTypeId = $this->getInvoiceTypeId();
+
+        if (!isset(Invoice::INVOICE_TYPES[$invoiceTypeId])) {
+            return null;
+        }
+
+        switch (Invoice::INVOICE_TYPES[$invoiceTypeId]) {
+            case 'Normal':
+                return (object) ['short' => 'П', 'full' => 'ПРОМЕТ'];
+                break;
+
+            case 'Proforma':
+                return (object) ['short' => 'Р', 'full' => 'ПРЕДРАЧУН'];
+                break;
+
+            case 'Copy':
+                return (object) ['short' => 'К', 'full' => 'КОПИЈА'];
+                break;
+
+            case 'Training':
+                return (object) ['short' => 'О', 'full' => 'ОБУКА'];
+                break;
+
+            case 'Advance':
+                return (object) ['short' => 'А', 'full' => 'АВАНС'];
+                break;
+            
+            default:
+                return null;
+                break;
+        }
+    }
+
+    public function getTransactionTypeExtension(): ?\stdClass
+    {
+        $transactionTypeId = $this->getTransactionTypeId();
+
+        if (!isset(Invoice::TRANSACTION_TYPES[$transactionTypeId])) {
+            return null;
+        }
+
+        switch (Invoice::TRANSACTION_TYPES[$transactionTypeId]) {
+            case 'Sale':
+                return (object) ['short' => 'П', 'full' => 'ПРОДАЈА'];
+                break;
+
+            case 'Refund':
+                return (object) ['short' => 'Р', 'full' => 'РЕФУНДАЦИЈА'];
+                break;
+            
+            default:
+                return null;
+                break;
+        }
     }
 }

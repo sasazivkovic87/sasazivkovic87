@@ -87,6 +87,23 @@ class Organization
      */
     private $supportedLanguages;
 
+    /**
+     * @ORM\Column(type="text", length=255, nullable=true)
+     * @Groups({"organization_post"})
+     */
+    private $serialNumber;
+
+    /**
+     * @ORM\Column(type="text", length=255, nullable=true)
+     * @Groups({"organization_post"})
+     */
+    private $district;
+
+    /**
+     * @ORM\Column(type="text", length=255, nullable=true)
+     * @Groups({"organization_post"})
+     */
+    private $taxId;
 
     public function getId(): ?int
     {
@@ -209,6 +226,42 @@ class Organization
     public function setSupportedLanguages($supportedLanguages): self
     {
         $this->supportedLanguages = $supportedLanguages;
+
+        return $this;
+    }
+
+    public function getSerialNumber(): ?string
+    {
+        return $this->serialNumber;
+    }
+
+    public function setSerialNumber(string $serialNumber): self
+    {
+        $this->serialNumber = $serialNumber;
+
+        return $this;
+    }
+
+    public function getDistrict(): ?string
+    {
+        return $this->district;
+    }
+
+    public function setDistrict(string $district): self
+    {
+        $this->district = $district;
+
+        return $this;
+    }
+
+    public function getTaxId(): ?string
+    {
+        return $this->taxId;
+    }
+
+    public function setTaxId(string $taxId): self
+    {
+        $this->taxId = $taxId;
 
         return $this;
     }

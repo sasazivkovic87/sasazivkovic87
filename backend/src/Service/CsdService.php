@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\Entity\Organization\Organization;
+use App\Entity\Tax\TaxCategory;
 use App\Entity\Invoice\Invoice;
 use App\Entity\Invoice\InvoiceItem;
 use App\Entity\Invoice\VcsdResponse;
@@ -18,31 +20,96 @@ class CsdService
 {
     public function __construct(
         EntityManagerInterface $entityManager,
-        TokenStorageInterface $tokenStorage
+        TokenStorageInterface $tokenStorage,
+        TaxService $taxService,
+        QRCodeService $QRCodeService,
+        CryptService $cryptService,
+        JournalService $journalService
     )
     {
         $this->entityManager = $entityManager;
         $this->tokenStorage = $tokenStorage;
+        $this->taxService = $taxService;
+        $this->QRCodeService = $QRCodeService;
+        $this->cryptService = $cryptService;
+        $this->journalService = $journalService;
 
     }
 
-    public function createCsdResponse(Invoice $invoice)
+    public function createCsdResponse(Invoice $invoice): void
     {
         $ecsdResponse = $this->createEcsdResponse($invoice);
 
-        if ($ecsdResponse) {
-            $this->createVcsdResponse($invoice);
-        }
-
-        return $ecsdResponse;
+        // if ($ecsdResponse) {
+        //     $this->createVcsdResponse($invoice);
+        // }
     }
 
     public function createEcsdResponse(Invoice $invoice)
     {
+        $organization = $this->entityManager->getRepository(Organization::class)->findOneBy([]);
+
+        $serialNumber = $organization->getSerialNumber();
+
+        $sdcDateTime = new \DateTime();
+        $sdcDateTime->setTimezone(new \DateTimeZone($organization->getServerTimeZone()));
+
+        $invoiceExtension = $invoice->getInvoiceTypeExtension();
+        $transactionExtension = $invoice->getTransactionTypeExtension();
+
+        if (!$invoiceExtension || !$transactionExtension) {
+            return false;
+        }
+
+        $invoiceId = $invoice->getId();
+
+        $counter = $this->entityManager->getRepository(Invoice::class)->getCountOfObjects($invoice->getInvoiceTypeId(), $invoice->getTransactionTypeId());
+        $invoiceCounter = $counter . '/' . $invoiceId . $invoiceExtension->short . $transactionExtension->short;
+        $invoiceNumber = $serialNumber . '-' . $serialNumber . '-' . $invoiceId;
+
+        $totalAmount = $this->entityManager->getRepository(Invoice::class)->getTotalAmount($invoice);
+
+        $taxItems = $this->taxService->getTaxItems($invoice);
+
+        $verificationUrl = 'https://www.aktiv.rs';
+        $verificationQRCode = $this->QRCodeService->generate($verificationUrl);
+
+        $journal = $this->journalService->create($invoice, $sdcDateTime, $invoiceCounter, $invoiceNumber);
+
+        $response = [
+            "requestedBy" => $serialNumber,
+            "sdcDateTime" => $sdcDateTime->format('c'),
+            "invoiceCounter" => $invoiceCounter,
+            "invoiceCounterExtension" => $invoiceExtension->short . $transactionExtension->short,
+            "invoiceNumber" => $invoiceNumber,
+            "taxItems" => array_values($taxItems),
+            "verificationUrl" => $verificationUrl,
+            "verificationQRCode" => $verificationQRCode,
+            "journal" => $journal,
+            "messages" => "Success",
+            "signedBy" => $serialNumber,
+            "encryptedInternalData" => "czilWoiAnRjP8",
+            "totalCounter" => $invoiceId,
+            "transactionTypeCounter" => $counter,
+            "totalAmount" => self::format($totalAmount),
+            "taxGroupRevision" => 5,
+            "businessName" => $organization->getOrganizationName(),
+            "tin" => $organization->getCountry() . $organization->getTaxId(),
+            "locationName" => $organization->getOrganizationName(),
+            "address" => $organization->getStreet(),
+            "district" => $organization->getDistrict(),
+            "mrc" => $_ENV['ECSD_MAKE_CODE'] . '-' . $_ENV['ECSD_SOFTWARE_VERSION_CODE'] . '-' . $serialNumber
+        ];
+
+        $response['encryptedInternalData'] = base64_encode($this->cryptService->encrypt(json_encode($response)));
+        $response['signature'] = base64_encode(hash_hmac('md5', json_encode($response), $_ENV['APP_SECRET']));
+
+        $this->saveCsdResponse(json_encode($response), $invoice, EcsdResponse::class);
+
         return true;
     }
 
-    public function createVcsdResponse(Invoice $invoice)
+    public function createVcsdResponse(Invoice $invoice): bool
     {
         $defaultContext = [
             AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object, $format, $context) {
@@ -71,7 +138,7 @@ class CsdService
     }
 
 
-    private function vcsdServiceRequest(string $requestPayload, string $requestAction)
+    private function vcsdServiceRequest(string $requestPayload, string $requestAction): ?string
     {
         try {
             $ch = curl_init();
@@ -108,18 +175,6 @@ class CsdService
         return $response;
     }
 
-    public function checkCsdStatus()
-    {
-        try {        
-            $response = $this->vcsdServiceRequest([]);
-            $decodedResponse = json_decode($response, true);
-
-            return isset($decodedResponse['message']);
-        } catch (\Exception $e) {
-            return false;
-        }        
-    }
-
     protected function saveCsdResponse(string $jsonData, Invoice $invoice, string $csdResponseClass)
     {
         $serializer = new Serializer(
@@ -136,7 +191,7 @@ class CsdService
         return $csdResponseObject;
     }
 
-    public function getCsdResponse(Invoice $invoice, string $csdResponseClass)
+    public function getCsdResponse(Invoice $invoice, string $csdResponseClass): ?array
     {
         $defaultContext = [
             AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object, $format, $context) {
@@ -160,15 +215,19 @@ class CsdService
         $normalizedResult = $serializer->normalize($csdResponse);
 
         if (isset($notNeededFields['message'])) {
-            $fieldNames = $this->entityManager->getClassMetadata(Invoice::class)->getFieldNames();
-
             return ['modelState' => $normalizedResult['modelState'], 'message' => $normalizedResult['message']];
         }
 
         return $this->unsetNotNeededFields($normalizedResult, ['id', 'invoice', 'modelState', 'message']);
     }
 
-    private function unsetNotNeededFields(array $fullArray, array $unsetFields)
+    private static function format($value, $decimal = 4): float
+    {
+        return round($value, $decimal, PHP_ROUND_HALF_UP);
+        // return number_format(round($value, $decimal, PHP_ROUND_HALF_UP), $decimal, '.', '');
+    }
+
+    private function unsetNotNeededFields(array $fullArray, array $unsetFields): array
     {
         foreach ($fullArray as $key => $value) {
             if (in_array($key, $unsetFields)) {

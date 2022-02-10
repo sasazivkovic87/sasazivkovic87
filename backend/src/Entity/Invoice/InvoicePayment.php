@@ -17,6 +17,17 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class InvoicePayment
 {
+
+    CONST INVOICE_PAYMENTS = [
+        0 => 'Other',
+        1 => 'Cash',
+        2 => 'Card',
+        3 => 'Check',
+        4 => 'Wire Transfer',
+        5 => 'Voucher',
+        6 => 'Mobile Money'
+    ];
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -88,5 +99,17 @@ class InvoicePayment
         $this->amount = $amount;
 
         return $this;
+    }
+
+    public function getInvoicePaymentTypeId(): ?int
+    {
+        if (is_numeric($this->paymentType) && in_array((int) $this->paymentType, array_keys(self::INVOICE_PAYMENTS))) {
+            return (int) $this->paymentType;
+        }
+        elseif (isset(array_flip(self::INVOICE_PAYMENTS)[$this->paymentType])) {
+            return array_flip(self::INVOICE_PAYMENTS)[$this->paymentType];
+        }
+
+        return null;
     }
 }

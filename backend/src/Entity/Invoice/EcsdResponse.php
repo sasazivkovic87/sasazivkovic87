@@ -76,12 +76,12 @@ class EcsdResponse
     private $signedBy;
 
     /**
-     * @ORM\Column(type="string", length=1000, nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
     private $encryptedInternalData;
 
     /**
-     * @ORM\Column(type="string", length=1000, nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
     private $signature;
 

@@ -11,6 +11,7 @@
         "doctrine/doctrine-bundle": "^2.1",
         "doctrine/doctrine-migrations-bundle": "^3.0",
         "doctrine/orm": "^2.7",
+        "endroid/qr-code": "^4.4",
         "endroid/qr-code-bundle": "^4.0",
         "gedmo/doctrine-extensions": "^3.0",
         "gesdinet/jwt-refresh-token-bundle": "^0.9.1",

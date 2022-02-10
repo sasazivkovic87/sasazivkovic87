@@ -19,4 +19,24 @@ class TaxCategoryRepository extends ServiceEntityRepository
         parent::__construct($registry, TaxCategory::class);
     }
 
+    /**
+     * @return integer Returns an count integer
+     */
+    public function findByLabel(string $label)
+    {
+        try {
+            return $this->createQueryBuilder('tc')
+            	->select('tc.name', 'tc.categoryType', 'tr.label', 'tr.rate')
+            	->innerJoin('tc.taxRates', 'tr')
+            	->innerJoin('tc.tax', 't')
+                ->where('tr.label = :label')
+                ->setParameter('label', $label)
+                ->orderBy('t.validFrom', 'DESC')
+                ->setMaxResults(1)
+                ->getQuery()
+    			->getOneOrNullResult();
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
 }
