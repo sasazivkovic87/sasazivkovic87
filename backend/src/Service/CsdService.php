@@ -3,9 +3,11 @@
 namespace App\Service;
 
 use App\Entity\Organization\Organization;
+use App\Entity\Tax\Tax;
 use App\Entity\Tax\TaxCategory;
 use App\Entity\Invoice\Invoice;
 use App\Entity\Invoice\InvoiceItem;
+use App\Entity\Invoice\InvoicePayment;
 use App\Entity\Invoice\VcsdResponse;
 use App\Entity\Invoice\EcsdResponse;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,7 +16,7 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class CsdService
 {
@@ -24,7 +26,8 @@ class CsdService
         TaxService $taxService,
         QRCodeService $QRCodeService,
         CryptService $cryptService,
-        JournalService $journalService
+        JournalService $journalService,
+        ValidatorInterface $validator
     )
     {
         $this->entityManager = $entityManager;
@@ -33,6 +36,7 @@ class CsdService
         $this->QRCodeService = $QRCodeService;
         $this->cryptService = $cryptService;
         $this->journalService = $journalService;
+        $this->validator = $validator;
 
     }
 
@@ -88,7 +92,6 @@ class CsdService
             "journal" => $journal,
             "messages" => "Success",
             "signedBy" => $serialNumber,
-            "encryptedInternalData" => "czilWoiAnRjP8",
             "totalCounter" => $invoiceId,
             "transactionTypeCounter" => $counter,
             "totalAmount" => self::format($totalAmount),
@@ -193,13 +196,6 @@ class CsdService
 
     public function getCsdResponse(Invoice $invoice, string $csdResponseClass): ?array
     {
-        $defaultContext = [
-            AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object, $format, $context) {
-                return null;
-            },
-        ];
-        $serializer = new Serializer([new ObjectNormalizer(null, null, null, null, null, null, $defaultContext)], []);
-
         $csdResponse = null;
         $this->entityManager->refresh($invoice);
         if ($csdResponseClass === VcsdResponse::class) {
@@ -212,9 +208,16 @@ class CsdService
             return null;
         }
 
+        $defaultContext = [
+            AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object, $format, $context) {
+                return null;
+            },
+        ];
+        $serializer = new Serializer([new ObjectNormalizer(null, null, null, null, null, null, $defaultContext)], []);
+
         $normalizedResult = $serializer->normalize($csdResponse);
 
-        if (isset($notNeededFields['message'])) {
+        if (isset($normalizedResult['message'])) {
             return ['modelState' => $normalizedResult['modelState'], 'message' => $normalizedResult['message']];
         }
 
@@ -252,5 +255,155 @@ class CsdService
         }
 
         return $fullArray;
+    }
+
+    public function validateInvoice($invoiceRequest): array
+    {
+        $errorResults = [];
+        
+        $notBlank = new \Symfony\Component\Validator\Constraints\NotBlank(['message' => '2800']);
+        $length255 = new \Symfony\Component\Validator\Constraints\Length(['max' => 255, 'maxMessage' => '2803']);
+        $digit = new \Symfony\Component\Validator\Constraints\Type(['type' => ['float', 'integer'], 'message' => '2805']);
+        $array = new \Symfony\Component\Validator\Constraints\Type(['type' => ['array'], 'message' => '2805']);
+        $inArrayInvoiceType = new \App\Validator\InArray(['checkArray' => array_merge(Invoice::INVOICE_TYPES, array_map(function ($item) { return (string) $item; }, array_flip(Invoice::INVOICE_TYPES))), 'message' => '2805']);
+        $inArrayTransactionType = new \App\Validator\InArray(['checkArray' => array_merge(Invoice::TRANSACTION_TYPES, array_map(function ($item) { return (string) $item; }, array_flip(Invoice::TRANSACTION_TYPES))), 'message' => '2805']);
+        $inArrayOptions = new \App\Validator\InArray(['checkArray' => ["", "0", "1"], 'message' => '2805']);
+        $isDateTime = new \App\Validator\IsDateTime(['message' => '2805']);
+        $dbExists = new \App\Validator\DbExists(['class' => EcsdResponse::class, 'field' => 'invoiceNumber', 'message' => '2805']);
+        $inArrayLabels = new \App\Validator\InArray(['checkArray' => $this->taxService->getValidTaxLabels(), 'message' => '2805']);
+        $inArrayPaymentType = new \App\Validator\InArray(['checkArray' => array_merge(InvoicePayment::INVOICE_PAYMENTS, array_map(function ($item) { return (string) $item; }, array_flip(InvoicePayment::INVOICE_PAYMENTS))), 'message' => '2805']);
+
+        $fields = [
+            [
+                'property' => 'dateAndTimeOfIssue',
+                'value' => $invoiceRequest['dateAndTimeOfIssue'] ?? '',
+                'constraints' => [$notBlank, $length255, $isDateTime]
+            ],
+            [
+                'property' => 'cashier',
+                'value' => $invoiceRequest['cashier'] ?? '',
+                'constraints' => [$length255]
+            ],
+            [
+                'property' => 'buyerId',
+                'value' => $invoiceRequest['buyerId'] ?? '',
+                'constraints' => [$length255]
+            ],
+            [
+                'property' => 'buyerCostCenterId',
+                'value' => $invoiceRequest['buyerCostCenterId'] ?? '',
+                'constraints' => [$length255]
+            ],
+            [
+                'property' => 'invoiceType',
+                'value' => $invoiceRequest['invoiceType'] ?? '',
+                'constraints' => [$notBlank, $inArrayInvoiceType]
+            ],
+            [
+                'property' => 'transactionType',
+                'value' => $invoiceRequest['transactionType'] ?? '',
+                'constraints' => [$notBlank, $inArrayTransactionType]
+            ],
+            [
+                'property' => 'invoiceNumber',
+                'value' => $invoiceRequest['invoiceNumber'] ?? '',
+                'constraints' => [$length255]
+            ],
+            [
+                'property' => 'referentDocumentNumber',
+                'value' => $invoiceRequest['referentDocumentNumber'] ?? '',
+                'constraints' => [$length255, $dbExists]
+            ],
+            [
+                'property' => 'referentDocumentDT',
+                'value' => $invoiceRequest['referentDocumentDT'] ?? '',
+                'constraints' => [$length255, $isDateTime]
+            ],
+            [
+                'property' => 'options.omitQRCodeGen',
+                'value' => $invoiceRequest['options']['omitQRCodeGen'] ?? '',
+                'constraints' => [$length255, $inArrayOptions]
+            ],
+            [
+                'property' => 'options.omitTextualRepresentation',
+                'value' => $invoiceRequest['options']['omitTextualRepresentation'] ?? '',
+                'constraints' => [$length255, $inArrayOptions]
+            ],
+            [
+                'property' => 'items',
+                'value' => $invoiceRequest['items'] ?? '',
+                'constraints' => [$array]
+            ],
+            [
+                'property' => 'payment',
+                'value' => $invoiceRequest['payment'] ?? '',
+                'constraints' => [$array]
+            ]
+        ];
+
+        foreach (($invoiceRequest['items'] ?? []) as $key => $invoiceItem) {
+            $fields[] = [
+                'property' => 'items[' . $key . '].name',
+                'value' => $invoiceItem['name'] ?? '',
+                'constraints' => [$notBlank, $length255]
+            ];
+            $fields[] = [
+                'property' => 'items[' . $key . '].quantity',
+                'value' => floatval($invoiceItem['quantity'] ?? ''),
+                'constraints' => [$notBlank, $length255, $digit]
+            ];
+            $fields[] = [
+                'property' => 'items[' . $key . '].unitPrice',
+                'value' => floatval($invoiceItem['unitPrice'] ?? ''),
+                'constraints' => [$notBlank, $length255, $digit]
+            ];
+            $fields[] = [
+                'property' => 'items[' . $key . '].gtin',
+                'value' => $invoiceItem['gtin'] ?? '',
+                'constraints' => [$length255]
+            ];
+            $fields[] = [
+                'property' => 'items[' . $key . '].totalAmount',
+                'value' => floatval($invoiceItem['totalAmount'] ?? ''),
+                'constraints' => [$notBlank, $length255, $digit]
+            ];
+
+            foreach ($invoiceItem['labels'] as $labelKey => $label) {
+                $fields[] = [
+                    'property' => 'items[' . $key . '].labels[' . $labelKey . ']',
+                    'value' => $label ?? '',
+                    'constraints' => [$notBlank, $inArrayLabels]
+                ];
+            }
+        }
+
+        foreach (($invoiceRequest['payment'] ?? []) as $key => $invoicePayment) {
+            $fields[] = [
+                'property' => 'payment[' . $key . '].paymentType',
+                'value' => $invoicePayment['paymentType'] ?? '',
+                'constraints' => [$notBlank, $length255, $inArrayPaymentType]
+            ];
+            $fields[] = [
+                'property' => 'payment[' . $key . '].amount',
+                'value' => floatval($invoicePayment['amount'] ?? ''),
+                'constraints' => [$notBlank, $length255, $digit]
+            ];
+        }
+
+        foreach ($fields as $field) {
+            $errors = $this->validator->validate($field['value'], $field['constraints']);
+
+            if (count($errors) > 0) {
+                $errorResult = ['property' => $field['property']];
+
+                foreach ($errors as $error) {
+                    $errorResult['errors'][] = $error->getMessage();
+                }
+
+                $errorResults[] = $errorResult;
+            }
+        }
+
+        return $errorResults;
     }
 }

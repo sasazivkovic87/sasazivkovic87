@@ -42,7 +42,7 @@ class InvoicePayment
     private $invoice;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255)
      * @Groups({"invoice_payment"})
      */
     private $paymentType;
@@ -89,12 +89,12 @@ class InvoicePayment
         return $this;
     }
 
-    public function getAmount(): ?string
+    public function getAmount()
     {
         return $this->amount;
     }
 
-    public function setAmount(string $amount): self
+    public function setAmount($amount): self
     {
         $this->amount = $amount;
 

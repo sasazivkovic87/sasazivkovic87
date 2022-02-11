@@ -31,19 +31,19 @@ class InvoiceItem
     private $invoice;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255)
      * @Groups({"invoice_item"})
      */
     private $name;
 
     /**
-     * @ORM\Column(type="string", length=10, nullable=true)
+     * @ORM\Column(type="string", length=10)
      * @Groups({"invoice_item"})
      */
     private $quantity;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255)
      * @Groups({"invoice_item"})
      */
     private $unitPrice;
@@ -55,7 +55,7 @@ class InvoiceItem
     private $gtin;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255)
      * @Groups({"invoice_item"})
      */
     private $totalAmount;

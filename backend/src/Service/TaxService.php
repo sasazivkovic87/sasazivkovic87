@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Invoice\Invoice;
+use App\Entity\Tax\Tax;
 use App\Entity\Tax\TaxCategory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -66,5 +67,20 @@ class TaxService
         $taxAmount = ($amount * $taxRate) / 100;
 
         return ($taxAmount / $taxSum) * $targetTax;
+    }
+
+    public function getValidTaxLabels(): array
+    {
+        $labels = [];
+
+        $tax = $this->entityManager->getRepository(Tax::class)->findOneBy([], ['validFrom' => 'desc']);
+
+        foreach ($tax->getTaxCategories() as $taxCategory) {
+            foreach ($taxCategory->getTaxRates() as $taxRate) {
+                $labels[] = $taxRate->getLabel();
+            }
+        }
+
+        return $labels;
     }
 }
