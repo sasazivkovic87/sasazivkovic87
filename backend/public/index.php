@@ -6,6 +6,7 @@ use Symfony\Component\ErrorHandler\Debug;
 use Symfony\Component\HttpFoundation\Request;
 
 require dirname(__DIR__).'/vendor/autoload.php';
+require dirname(__DIR__).'/chilkat_9_5_0.php';
 
 (new Dotenv())->bootEnv(dirname(__DIR__).'/.env');
 
