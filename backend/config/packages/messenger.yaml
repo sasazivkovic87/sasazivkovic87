@@ -18,44 +18,20 @@ framework:
             async:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 serializer: messenger.transport.symfony_serializer
-            central_async:
+            verified_async:
                 dsn: '%env(RABBIT_MESSENGER_TRANSPORT_DSN)%'
                 options:
                     exchange:
-                        name: central_async
+                        name: verified_async_352_01
                     queues:
-                        central_async: ~
+                        verified_async_352_01: ~
                 serializer: messenger.transport.symfony_serializer
-            pos_async:
-                dsn: '%env(RABBIT_MESSENGER_TRANSPORT_DSN)%'
-                options:
-                    exchange:
-                        name: pos_async_104
-                    queues:
-                        pos_async_104: ~
-                serializer: messenger.transport.symfony_serializer
-            failed: '%env(RABBIT_MESSENGER_TRANSPORT_DSN)%'
+            failed: '%env(MESSENGER_TRANSPORT_DSN)%'
+            sync: 'sync://'
 
         failure_transport: failed
 
-        # routing:
-        #     'App\Messenger\MessagePublish\Synchronization\PosVatMessage': pos_async
-        #     'App\Messenger\MessagePublish\Synchronization\PosCustomerMessage': pos_async
-        #     'App\Messenger\MessagePublish\Synchronization\PosWarehouseMessage': pos_async
-        #     'App\Messenger\MessagePublish\Synchronization\PosArticleMessage': pos_async
-        #     'App\Messenger\MessagePublish\Synchronization\PosArticleGroupMessage': pos_async
-        #     'App\Messenger\MessagePublish\Synchronization\PosWarehouseArticleMessage': pos_async
-        #     'App\Messenger\MessagePublish\Synchronization\PosMeasureUnitMessage': pos_async
-        #     'App\Messenger\MessagePublish\Synchronization\SyncFiscalFromPosMessage': pos_async
-        #     'App\Messenger\MessagePublish\Synchronization\SyncFiscalFromPosFailedMessage': pos_async
-
-        #     'App\Messenger\MessagePublish\Synchronization\FiscalAccountMessage': central_async
-        #     'App\Messenger\MessagePublish\Synchronization\FiscalAccountFailedMessage': central_async
-        #     'App\Messenger\MessagePublish\Synchronization\DailyPieceSaleMessage': central_async
-        #     'App\Messenger\MessagePublish\Synchronization\CancelFiscalAccountMessage': central_async
-
-        #     'App\Messenger\MessagePublish\SellSyncMessage': async
-        #     'App\Messenger\MessagePublish\CancelFiscalAccountSyncMessage': async
-        #     'App\Messenger\MessagePublish\LocalArticleMessage': async
-        #     'App\Messenger\MessagePublish\LocalWarehouseArticleMessage': async
+        routing:
+            'App\Messenger\MessagePublish\EcsdMessage': async
+            'App\Messenger\MessagePublish\VerifiedMessage': verified_async
 

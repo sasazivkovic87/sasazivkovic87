@@ -12,17 +12,20 @@ use App\Entity\Invoice\VcsdResponse;
 use App\Entity\Invoice\EcsdResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Messenger\MessagePublish\EcsdMessage;
 
 class CsdService
 {
     public function __construct(
         EntityManagerInterface $entityManager,
         TokenStorageInterface $tokenStorage,
+        MessageBusInterface $bus,
         TaxService $taxService,
         QRCodeService $QRCodeService,
         CryptService $cryptService,
@@ -32,6 +35,7 @@ class CsdService
     {
         $this->entityManager = $entityManager;
         $this->tokenStorage = $tokenStorage;
+        $this->bus = $bus;
         $this->taxService = $taxService;
         $this->QRCodeService = $QRCodeService;
         $this->cryptService = $cryptService;
@@ -44,9 +48,9 @@ class CsdService
     {
         $ecsdResponse = $this->createEcsdResponse($invoice);
 
-        // if ($ecsdResponse) {
-        //     $this->createVcsdResponse($invoice);
-        // }
+        if ($ecsdResponse) {
+            // $this->bus->dispatch(new EcsdMessage($invoice->getId()));
+        }
     }
 
     public function createEcsdResponse(Invoice $invoice)
@@ -75,7 +79,7 @@ class CsdService
 
         $taxItems = $this->taxService->getTaxItems($invoice);
 
-        $verificationUrl = 'https://www.aktiv.rs';
+        $verificationUrl = $_ENV['ECSD_VERIFICATION_URL'] . '/' . $_ENV['ECSD_SERIAL_NUMBER'] . '/' . $invoiceId . '/' . urlencode($this->cryptService->hashHmacMd5(json_encode([$_ENV['ECSD_SERIAL_NUMBER'], $invoiceId]), $_ENV['APP_SECRET']));
         $verificationQRCode = $this->QRCodeService->generate($verificationUrl);
 
         $journal = $this->journalService->create($invoice, $sdcDateTime, $invoiceCounter, $invoiceNumber);
@@ -104,8 +108,8 @@ class CsdService
             "mrc" => $_ENV['ECSD_MAKE_CODE'] . '-' . $_ENV['ECSD_SOFTWARE_VERSION_CODE'] . '-' . $serialNumber
         ];
 
-        $response['encryptedInternalData'] = base64_encode($this->cryptService->encrypt(json_encode($response)));
-        $response['signature'] = base64_encode(hash_hmac('md5', json_encode($response), $_ENV['APP_SECRET']));
+        $response['signature'] = $this->cryptService->hashHmacMd5(json_encode($response), $_ENV['APP_SECRET'], true);
+        $response['encryptedInternalData'] = $this->cryptService->encrypt(json_encode($response), $_ENV['APP_SECRET'], true);
 
         $this->saveCsdResponse(json_encode($response), $invoice, EcsdResponse::class);
 
@@ -128,12 +132,8 @@ class CsdService
 
         try {        
             $response = $this->vcsdServiceRequest($requestData, 'invoices');
-            $csdResponse = $this->saveCsdResponse($response, $invoice, VcsdResponse::class);
+            $this->saveCsdResponse($response, $invoice, VcsdResponse::class);
         } catch (\Exception $e) {
-            return false;
-        }
-
-        if ($csdResponse->getMessage()) {
             return false;
         }
 

@@ -60,7 +60,7 @@ final class PreReadSubscriber implements EventSubscriberInterface
                         'message' => 'The request is invalid.',
                         'modelState' => $cardErrors
                     ];
-                    $event->setResponse(new JsonResponse($response, Response::HTTP_OK));
+                    $event->setResponse(new JsonResponse($response, Response::HTTP_UNPROCESSABLE_ENTITY));
                 }
 
                 $jsonRequest = json_decode($event->getRequest()->getContent(), true);
@@ -70,7 +70,7 @@ final class PreReadSubscriber implements EventSubscriberInterface
                         'message' => 'The request is invalid.',
                         'modelState' => $errors
                     ];
-                    $event->setResponse(new JsonResponse($response, Response::HTTP_OK));
+                    $event->setResponse(new JsonResponse($response, Response::HTTP_UNPROCESSABLE_ENTITY));
                 }
             }
         }

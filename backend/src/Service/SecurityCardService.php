@@ -43,6 +43,7 @@ class SecurityCardService
 
     public function checkCard($securityCardNumber = null): ?string
     {
+        return null;
     	if (!$securityCardNumber) {
     		$securityCardNumber = $_ENV['SECURITY_CARD_NUMBER'];
     	}

@@ -59,9 +59,12 @@ final class PostRespondSubscriber implements EventSubscriberInterface
                 $jsonResponse = json_decode($event->getResponse()->getContent(), true);
                 $invoice = $this->entityManager->getRepository(Invoice::class)->find($jsonResponse['id']);
 
-                $csdResponse = $this->csdService->getCsdResponse($invoice, VcsdResponse::class);
-                if (!$csdResponse) {
-                    $csdResponse = $this->csdService->getCsdResponse($invoice, EcsdResponse::class);
+                $csdResponse = $this->csdService->getCsdResponse($invoice, EcsdResponse::class);
+
+                sleep(2);
+                $vcsdResponse = $this->csdService->getCsdResponse($invoice, VcsdResponse::class);
+                if ($vcsdResponse) {
+                    $csdResponse = $vcsdResponse;
                 }
                 $response = new JsonResponse($csdResponse, Response::HTTP_OK);
 
