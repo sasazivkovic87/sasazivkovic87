@@ -49,7 +49,7 @@ class CsdService
         $ecsdResponse = $this->createEcsdResponse($invoice);
 
         if ($ecsdResponse) {
-            // $this->bus->dispatch(new EcsdMessage($invoice->getId()));
+            $this->bus->dispatch(new EcsdMessage($invoice->getId()));
         }
     }
 
@@ -127,7 +127,7 @@ class CsdService
 
         $normalizedResult = $serializer->normalize($invoice);
 
-        $requestData = $this->unsetNotNeededFields($normalizedResult, ['id','invoice']);
+        $requestData = $this->unsetNotNeededFields($normalizedResult, ['id','invoice', 'ecsdResponse', 'vcsdResponse', 'invoiceTypeExtension', 'transactionTypeExtension', '__initializer__', '__cloner__', '__isInitialized__']);
         $requestData = json_encode($requestData);
 
         try {        
@@ -312,7 +312,7 @@ class CsdService
             [
                 'property' => 'referentDocumentNumber',
                 'value' => $invoiceRequest['referentDocumentNumber'] ?? '',
-                'constraints' => [$length255, $dbExists]
+                'constraints' => in_array(($invoiceRequest['transactionType'] ?? ''),['1', 'Refund']) ? [$notBlank, $length255, $dbExists] : [$length255, $dbExists]
             ],
             [
                 'property' => 'referentDocumentDT',

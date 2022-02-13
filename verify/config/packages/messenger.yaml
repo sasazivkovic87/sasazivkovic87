@@ -26,12 +26,11 @@ framework:
                     queues:
                         verified_async: ~
                 serializer: messenger.transport.symfony_serializer
-            failed: '%env(MESSENGER_TRANSPORT_DSN)%'
+            failed: '%env(RABBIT_MESSENGER_TRANSPORT_DSN)%'
             sync: 'sync://'
 
         failure_transport: failed
 
         routing:
-            'App\Messenger\MessagePublish\EcsdMessage': async
-            'App\Messenger\MessagePublish\VerifiedMessage': verified_async
+            # 'App\Messenger\MessagePublish\VerifiedMessage': async
 

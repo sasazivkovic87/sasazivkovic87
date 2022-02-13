@@ -46,11 +46,11 @@ class EcsdMessageHandler implements MessageHandlerInterface
 
             unset($ecsdResponse['encryptedInternalData']);
             $ecsdResponse['vcsdVerificationUrl'] = $vcsdResponse['verificationUrl'] ?? null;
-            $ecsdResponseJson = json_encode($ecsdResponse);
+            $ecsdResponseJson = base64_encode(json_encode($ecsdResponse));
 
             $this->bus->dispatch(new VerifiedMessage($ecsdResponseJson));
         }
 
-        $this->logger->info("Send To Ecsd Message successfully handled.");
+        $this->logger->info("Ecsd Message successfully handled.");
     }
 }
