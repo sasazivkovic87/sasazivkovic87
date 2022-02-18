@@ -40,7 +40,6 @@ class EcsdMessageHandler implements MessageHandlerInterface
         if (!$response) {
             $this->bus->dispatch(new EcsdMessage($ecsdMessage->getInvoiceId()), [new DelayStamp(60000)]);
         } else {
-
             $ecsdResponse = $this->csdService->getCsdResponse($invoice, EcsdResponse::class);
             $vcsdResponse = $this->csdService->getCsdResponse($invoice, VcsdResponse::class);
 

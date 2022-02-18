@@ -26,13 +26,13 @@ class DefaultController extends AbstractController
     /**
      * @Route(
      *     name="verify",
-     *     path="/{serialNumber}/{invoiceId}/{signature}",
+     *     path="/{jsonUrlParams}/{signature}",
      *     methods={"GET"}
      * )
      */
-    public function verify(EntityManagerInterface $entityManager, string $serialNumber, int $invoiceId, string $signature)
+    public function verify(EntityManagerInterface $entityManager, string $jsonUrlParams, string $signature)
     {
-        $thisUrl = $_ENV['APP_URL'] . '/' . $serialNumber . '/' . $invoiceId . '/' . $signature;
+        $thisUrl = $_ENV['APP_URL'] . '/' . urlencode($jsonUrlParams) . '/' . urlencode($signature);
 
         $invoiceResponse = $entityManager->getRepository(InvoiceResponse::class)->findOneBy(['ecsdVerificationUrl' => $thisUrl]);
         

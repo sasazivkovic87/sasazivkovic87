@@ -22,17 +22,36 @@ class InvoiceRepository extends ServiceEntityRepository
     /**
      * @return integer Returns an count integer
      */
-    public function getCountOfObjects(int $invoiceTypeId, int $transactionTypeId)
+    public function getInvoiceId(string $invoiceNumber)
     {
         try {
             return $this->createQueryBuilder('i')
                 ->select('COUNT(i.id)')
-                ->where('i.invoiceType LIKE :invoiceTypeId or i.invoiceType LIKE :invoiceType')
+                ->where('i.invoiceNumber LIKE :invoiceNumber')
+                ->setParameter('invoiceNumber', (string) $invoiceNumber)
+                ->getQuery()
+                ->getSingleScalarResult();
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * @return integer Returns an count integer
+     */
+    public function getTypeCounter(string $invoiceNumber, int $transactionTypeId, int $invoiceTypeId)
+    {
+        try {
+            return $this->createQueryBuilder('i')
+                ->select('COUNT(i.id)')
+                ->where('i.invoiceNumber LIKE :invoiceNumber')
                 ->andWhere('i.transactionType LIKE :transactionTypeId or i.transactionType LIKE :transactionType')
-                ->setParameter('invoiceTypeId', (string) $invoiceTypeId)
-                ->setParameter('invoiceType', Invoice::INVOICE_TYPES[$invoiceTypeId])
+                ->andWhere('i.invoiceType LIKE :invoiceTypeId or i.invoiceType LIKE :invoiceType')
+                ->setParameter('invoiceNumber', (string) $invoiceNumber)
                 ->setParameter('transactionTypeId', (string) $transactionTypeId)
                 ->setParameter('transactionType', Invoice::TRANSACTION_TYPES[$transactionTypeId])
+                ->setParameter('invoiceTypeId', (string) $invoiceTypeId)
+                ->setParameter('invoiceType', Invoice::INVOICE_TYPES[$invoiceTypeId])
                 ->getQuery()
                 ->getSingleScalarResult();
         } catch (\Exception $e) {
@@ -55,6 +74,26 @@ class InvoiceRepository extends ServiceEntityRepository
                 ->getSingleScalarResult();
         } catch (\Exception $e) {
             return 0;
+        }
+    }
+
+
+    /**
+     * @return array Returns
+     */
+    public function getAllWithoutVcsdResponse(): array
+    {
+        try {
+            return $this->createQueryBuilder('i')
+                ->select('i')
+                ->leftJoin('i.vcsdResponse', 'v')
+                ->innerJoin('i.ecsdResponse', 'e')
+                ->where('v.id IS NULL')
+                ->where('e.message IS NULL')
+                ->getQuery()
+                ->getResult();
+        } catch (\Exception $e) {
+            return [];
         }
     }
 }

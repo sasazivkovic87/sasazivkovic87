@@ -3,6 +3,7 @@
 namespace App\Entity\Invoice;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiProperty;
 use App\Repository\Invoice\InvoicePaymentRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -48,8 +49,14 @@ class InvoicePayment
     private $paymentType;
 
     /**
+     * @ApiProperty(
+     *     attributes={
+     *         "swagger_context"={
+     *             "type"="mixed"
+     * }})
      * @ORM\Column(type="string", length=255)
      * @Groups({"invoice_payment"})
+     * @var mixed
      */
     private $amount;
 
@@ -89,11 +96,18 @@ class InvoicePayment
         return $this;
     }
 
+    /**
+     * @return mixed
+     **/
     public function getAmount()
     {
-        return $this->amount;
+        return (string) $this->amount;
     }
 
+    /**
+     * @param mixed $amount
+     * @return self
+     **/
     public function setAmount($amount): self
     {
         $this->amount = $amount;

@@ -58,9 +58,10 @@ final class PreReadSubscriber implements EventSubscriberInterface
 
                     $response = [
                         'message' => 'The request is invalid.',
-                        'modelState' => $cardErrors
+                        'modelState' => [$cardErrors]
                     ];
-                    $event->setResponse(new JsonResponse($response, Response::HTTP_UNPROCESSABLE_ENTITY));
+                    $event->setResponse(new JsonResponse($response, Response::HTTP_UNAUTHORIZED));
+                    return;
                 }
 
                 $jsonRequest = json_decode($event->getRequest()->getContent(), true);

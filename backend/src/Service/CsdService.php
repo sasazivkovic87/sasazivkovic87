@@ -19,6 +19,7 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Messenger\MessagePublish\EcsdMessage;
+use Symfony\Component\Filesystem\Filesystem;
 
 class CsdService
 {
@@ -69,9 +70,9 @@ class CsdService
             return false;
         }
 
-        $invoiceId = $invoice->getId();
+        $invoiceId = $this->entityManager->getRepository(Invoice::class)->getInvoiceId($invoice->getInvoiceNumber());
 
-        $counter = $this->entityManager->getRepository(Invoice::class)->getCountOfObjects($invoice->getInvoiceTypeId(), $invoice->getTransactionTypeId());
+        $counter = $this->entityManager->getRepository(Invoice::class)->getTypeCounter($invoice->getInvoiceNumber(), $invoice->getTransactionTypeId(), $invoice->getInvoiceTypeId());
         $invoiceCounter = $counter . '/' . $invoiceId . $invoiceExtension->short . $transactionExtension->short;
         $invoiceNumber = $serialNumber . '-' . $serialNumber . '-' . $invoiceId;
 
@@ -79,7 +80,12 @@ class CsdService
 
         $taxItems = $this->taxService->getTaxItems($invoice);
 
-        $verificationUrl = $_ENV['ECSD_VERIFICATION_URL'] . '/' . $_ENV['ECSD_SERIAL_NUMBER'] . '/' . $invoiceId . '/' . urlencode($this->cryptService->hashHmacMd5(json_encode([$_ENV['ECSD_SERIAL_NUMBER'], $invoiceId]), $_ENV['APP_SECRET']));
+        $urlParams = json_encode([$_ENV['ECSD_SERIAL_NUMBER'], $invoice->getInvoiceNumber(), $invoiceId]);
+        $urlSignature = $this->cryptService->hashHmacMd5($urlParams, $_ENV['APP_SECRET']);
+        $verificationUrl = $_ENV['ECSD_VERIFICATION_URL'] . '/' . urlencode(base64_encode($urlParams)) . '/' . urlencode($urlSignature);
+
+        $this->cryptService->hashHmacMd5(json_encode([$_ENV['ECSD_SERIAL_NUMBER'], $invoiceId]), $_ENV['APP_SECRET']);
+
         $verificationQRCode = $this->QRCodeService->generate($verificationUrl);
 
         $journal = $this->journalService->create($invoice, $sdcDateTime, $invoiceCounter, $invoiceNumber);
@@ -128,6 +134,8 @@ class CsdService
         $normalizedResult = $serializer->normalize($invoice);
 
         $requestData = $this->unsetNotNeededFields($normalizedResult, ['id','invoice', 'ecsdResponse', 'vcsdResponse', 'invoiceTypeExtension', 'transactionTypeExtension', '__initializer__', '__cloner__', '__isInitialized__']);
+
+        $requestData['invoiceNumber'] = $_ENV['ESIR_NUMBER'];
         $requestData = json_encode($requestData);
 
         try {        
@@ -273,6 +281,8 @@ class CsdService
         $inArrayLabels = new \App\Validator\InArray(['checkArray' => $this->taxService->getValidTaxLabels(), 'message' => '2805']);
         $inArrayPaymentType = new \App\Validator\InArray(['checkArray' => array_merge(InvoicePayment::INVOICE_PAYMENTS, array_map(function ($item) { return (string) $item; }, array_flip(InvoicePayment::INVOICE_PAYMENTS))), 'message' => '2805']);
 
+        $referentDocumentNumberValidation = in_array(($invoiceRequest['transactionType'] ?? ''),['1', 'Refund']) || in_array(($invoiceRequest['invoiceType'] ?? ''),['2', 'Copy']) ? [$notBlank, $length255, $dbExists] : [$length255, $dbExists];
+
         $fields = [
             [
                 'property' => 'dateAndTimeOfIssue',
@@ -312,7 +322,7 @@ class CsdService
             [
                 'property' => 'referentDocumentNumber',
                 'value' => $invoiceRequest['referentDocumentNumber'] ?? '',
-                'constraints' => in_array(($invoiceRequest['transactionType'] ?? ''),['1', 'Refund']) ? [$notBlank, $length255, $dbExists] : [$length255, $dbExists]
+                'constraints' => $referentDocumentNumberValidation
             ],
             [
                 'property' => 'referentDocumentDT',
@@ -405,5 +415,37 @@ class CsdService
         }
 
         return $errorResults;
+    }
+
+    public function export()
+    {
+        $unreadInvoices = $this->entityManager->getRepository(Invoice::class)->getAllWithoutVcsdResponse();
+
+        $defaultContext = [
+            AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object, $format, $context) {
+                return null;
+            },
+        ];
+        $serializer = new Serializer([new ObjectNormalizer(null, null, null, null, null, null, $defaultContext)], [new JsonEncoder()]);
+        $fileSystem = new Filesystem();
+
+        foreach ([$unreadInvoices[0]] as $invoice) {
+            $normalizedResult = $this->unsetNotNeededFields($serializer->normalize($invoice), ['id','invoice', 'ecsdResponse', 'vcsdResponse', 'invoiceTypeExtension', 'transactionTypeExtension', '__initializer__', '__cloner__', '__isInitialized__']);
+
+            $jsonContent = $serializer->serialize($normalizedResult, 'json');
+            
+            try {
+                // $fileSystem->dumpFile('/home/mladen/Desktop/ESDRGDSERG/' . $invoice->getEcsdResponse()->getInvoiceNumber() . '.json', '');
+
+                // $fileSystem->chmod('/home/mladen/Desktop/ESDRGDSERG/', 0777);
+                $fileSystem->touch('/home/mladen/Desktop/ESDRGDSERG/' . $invoice->getEcsdResponse()->getInvoiceNumber() . '.json');
+                $fileSystem->appendToFile('/home/mladen/Desktop/ESDRGDSERG/' . $invoice->getEcsdResponse()->getInvoiceNumber() . '.json', $jsonContent);
+            }
+            catch(\IOException $e) {
+            }
+        }
+
+
+
     }
 }
