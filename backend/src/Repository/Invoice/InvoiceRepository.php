@@ -77,7 +77,6 @@ class InvoiceRepository extends ServiceEntityRepository
         }
     }
 
-
     /**
      * @return array Returns
      */
@@ -88,12 +87,33 @@ class InvoiceRepository extends ServiceEntityRepository
                 ->select('i')
                 ->leftJoin('i.vcsdResponse', 'v')
                 ->innerJoin('i.ecsdResponse', 'e')
-                ->where('v.id IS NULL')
-                ->where('e.message IS NULL')
+                ->where('i.copied = false OR i.copied IS NULL')
+                ->andWhere('v.id IS NULL')
+                ->andWhere('e.message IS NULL')
+                ->orderBy('i.id', 'ASC')
                 ->getQuery()
                 ->getResult();
         } catch (\Exception $e) {
             return [];
+        }
+    }
+
+    /**
+     * @return array Returns
+     */
+    public function getLastSignedInvoice()
+    {
+        try {
+            return $this->createQueryBuilder('i')
+                ->select('i')
+                ->innerJoin('i.ecsdResponse', 'e')
+                ->andWhere('e.message IS NULL')
+                ->orderBy('i.id', 'DESC')
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+        } catch (\Exception $e) {
+            return null;
         }
     }
 }

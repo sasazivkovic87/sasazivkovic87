@@ -127,6 +127,11 @@ class Invoice
      */
     private $vcsdResponse;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true, options={"default" : false})
+     */
+    private $copied;
+
     public function __construct()
     {
         $this->items = new ArrayCollection();
@@ -347,6 +352,18 @@ class Invoice
     public function setVcsdResponse(?VcsdResponse $vcsdResponse): self
     {
         $this->vcsdResponse = $vcsdResponse;
+
+        return $this;
+    }
+
+    public function getCopied(): bool
+    {
+        return $this->copied ?? false;
+    }
+
+    public function setCopied(bool $copied): self
+    {
+        $this->copied = $copied ?? false;
 
         return $this;
     }

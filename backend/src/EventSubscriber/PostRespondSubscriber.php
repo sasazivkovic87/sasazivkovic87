@@ -53,23 +53,26 @@ final class PostRespondSubscriber implements EventSubscriberInterface
 
         $method = $event->getRequest()->getMethod();
         $requestUri = $event->getRequest()->getRequestUri();
+        $jsonResponse = json_decode($event->getResponse()->getContent(), true);
 
-        if (Request::METHOD_POST === $method) {
-            if ($requestUri == '/api/invoices' && $event->getResponse()->getStatusCode() === Response::HTTP_CREATED) {
-                $jsonResponse = json_decode($event->getResponse()->getContent(), true);
-                $invoice = $this->entityManager->getRepository(Invoice::class)->find($jsonResponse['id']);
+        if (str_contains($requestUri, '/api/invoices')) {
+            if (in_array($method, [Request::METHOD_GET, Request::METHOD_POST])) {
 
-                $csdResponse = $this->csdService->getCsdResponse($invoice, EcsdResponse::class);
+                if (!isset($jsonResponse['modelState'])) {                
+                    if (!isset($jsonResponse['id'])) {
+                        $response = new JsonResponse(null, Response::HTTP_OK);
+                        $event->setResponse($response);
 
-                // sleep(2.5);
-                // $vcsdResponse = $this->csdService->getCsdResponse($invoice, VcsdResponse::class);
-                // if ($vcsdResponse) {
-                //     $csdResponse = $vcsdResponse;
-                // }
+                        return;
+                    }
 
-                $response = new JsonResponse($csdResponse, Response::HTTP_OK);
+                    $invoice = $this->entityManager->getRepository(Invoice::class)->find($jsonResponse['id']);
 
-                $event->setResponse($response);
+                    $csdResponse = $this->csdService->getCsdResponse($invoice, EcsdResponse::class);
+                    $response = new JsonResponse($csdResponse, Response::HTTP_OK);
+
+                    $event->setResponse($response);
+                }
             }
         }
     }

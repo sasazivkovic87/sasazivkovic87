@@ -188,5 +188,31 @@ class JournalService
     {
         return number_format(round($value, $decimal, PHP_ROUND_HALF_UP), $decimal, ',', '');
     }
+
+    public function print(Invoice $invoice): string
+    {
+        $journal = $invoice->getEcsdResponse()->getJournal();
+
+        $journal = str_replace(' ', '&nbsp;', $journal);
+
+        if (!empty($verificationQRCode = $invoice->getEcsdResponse()->getVerificationQRCode())) {
+            // TODO check if width and height are correct
+            $verificationQRCodeImage = '<img width="265px" src="data:image/gif;base64,' . $verificationQRCode . '" />';
+
+            $journal = preg_replace("/(========&nbsp;КРАЈ&nbsp;ФИСКАЛНОГ&nbsp;РАЧУНА&nbsp;=========)/", "{$verificationQRCodeImage}\n======== КРАЈ&nbsp;ФИСКАЛНОГ&nbsp;РАЧУНА&nbsp;=========", $journal);
+
+            $journal = preg_replace("/(\n========&nbsp;ОВО&nbsp;НИЈЕ&nbsp;ФИСКАЛНИ&nbsp;РАЧУН&nbsp;=======)/", "\n{$verificationQRCodeImage}\n========&nbsp;ОВО&nbsp;НИЈЕ&nbsp;ФИСКАЛНИ&nbsp;РАЧУН&nbsp;=======", $journal);
+        }
+
+        if (Invoice::INVOICE_TYPES[$invoice->getInvoiceTypeId()] == 'Copy'
+            && Invoice::TRANSACTION_TYPES[$invoice->getTransactionTypeId()] == 'Refund') {
+            $journal = preg_replace("/(\n========&nbsp;ОВО&nbsp;НИЈЕ&nbsp;ФИСКАЛНИ&nbsp;РАЧУН&nbsp;=======)/", "\n\nПотпис&nbsp;купца: _________________________\n========&nbsp;ОВО&nbsp;НИЈЕ&nbsp;ФИСКАЛНИ&nbsp;РАЧУН&nbsp;=======", $journal);
+        }
+
+        $journal = nl2br($journal);
+        $journal = '<div style="font-family: Monospace; font-size: 12.25px; font-weight: 900">' . $journal.'</div>';
+
+        return $journal;
+    }
 }
 

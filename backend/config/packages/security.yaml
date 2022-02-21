@@ -56,6 +56,8 @@ security:
         - { path: ^/api/authentication_token, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/add-user-password, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api/token/refresh, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/api/invoices$, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
+        - { path: ^/api/invoices, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [GET, POST] }
         - { path: ^/api/pin$, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
+        - { path: ^/api/last-signed-invoice$, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [GET] }
+        - { path: ^/api/status$, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [GET] }
         - { path: ^/api/*, roles: IS_AUTHENTICATED_FULLY }

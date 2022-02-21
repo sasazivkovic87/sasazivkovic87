@@ -79,13 +79,13 @@ class PinController extends AbstractController
     public function pin(SecurityCardService $securityCardService, CryptService $cryptService, Request $request)
     {
     	if ($errorCode = $securityCardService->checkCard()) {
-        	return new JsonResponse($errorCode, Response::HTTP_FORBIDDEN);
+        	return new JsonResponse($errorCode, Response::HTTP_OK);
     	}
 
 	    $pin = $request->getContent();
 
         if (!$securityCardService->checkPin($cryptService->hashHmacMd5($pin, $_ENV['APP_SECRET']))) {
-            return new JsonResponse("2100", Response::HTTP_UNAUTHORIZED);
+            return new JsonResponse("2100", Response::HTTP_OK);
         }
 
 	    $securityCardService->setPin($pin);

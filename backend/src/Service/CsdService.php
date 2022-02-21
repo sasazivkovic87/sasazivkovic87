@@ -20,6 +20,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Messenger\MessagePublish\EcsdMessage;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 
 class CsdService
 {
@@ -133,7 +134,7 @@ class CsdService
 
         $normalizedResult = $serializer->normalize($invoice);
 
-        $requestData = $this->unsetNotNeededFields($normalizedResult, ['id','invoice', 'ecsdResponse', 'vcsdResponse', 'invoiceTypeExtension', 'transactionTypeExtension', '__initializer__', '__cloner__', '__isInitialized__']);
+        $requestData = $this->unsetNotNeededFields($normalizedResult, ['id','invoice', 'ecsdResponse', 'vcsdResponse', 'invoiceTypeExtension', 'transactionTypeExtension', 'copied', '__initializer__', '__cloner__', '__isInitialized__']);
 
         $requestData['invoiceNumber'] = $_ENV['ESIR_NUMBER'];
         $requestData = json_encode($requestData);
@@ -417,10 +418,8 @@ class CsdService
         return $errorResults;
     }
 
-    public function export()
+    public function export($unreadInvoices, $dirPath)
     {
-        $unreadInvoices = $this->entityManager->getRepository(Invoice::class)->getAllWithoutVcsdResponse();
-
         $defaultContext = [
             AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object, $format, $context) {
                 return null;
@@ -429,23 +428,27 @@ class CsdService
         $serializer = new Serializer([new ObjectNormalizer(null, null, null, null, null, null, $defaultContext)], [new JsonEncoder()]);
         $fileSystem = new Filesystem();
 
-        foreach ([$unreadInvoices[0]] as $invoice) {
-            $normalizedResult = $this->unsetNotNeededFields($serializer->normalize($invoice), ['id','invoice', 'ecsdResponse', 'vcsdResponse', 'invoiceTypeExtension', 'transactionTypeExtension', '__initializer__', '__cloner__', '__isInitialized__']);
+        foreach ($unreadInvoices as $invoice) {
+            $normalizedResult = $this->unsetNotNeededFields($serializer->normalize($invoice), ['id','invoice', 'ecsdResponse', 'vcsdResponse', 'invoiceTypeExtension', 'transactionTypeExtension', 'copied', '__initializer__', '__cloner__', '__isInitialized__']);
 
             $jsonContent = $serializer->serialize($normalizedResult, 'json');
             
             try {
-                // $fileSystem->dumpFile('/home/mladen/Desktop/ESDRGDSERG/' . $invoice->getEcsdResponse()->getInvoiceNumber() . '.json', '');
+                // $fileSystem->chmod($dirPath, 0777, 0000, true);
+                $fileSystem->mkdir($dirPath . '/' . $invoice->getEcsdResponse()->getRequestedBy());
 
-                // $fileSystem->chmod('/home/mladen/Desktop/ESDRGDSERG/', 0777);
-                $fileSystem->touch('/home/mladen/Desktop/ESDRGDSERG/' . $invoice->getEcsdResponse()->getInvoiceNumber() . '.json');
-                $fileSystem->appendToFile('/home/mladen/Desktop/ESDRGDSERG/' . $invoice->getEcsdResponse()->getInvoiceNumber() . '.json', $jsonContent);
+                $filePath = $dirPath . '/' . $invoice->getEcsdResponse()->getRequestedBy() . '/' . $invoice->getEcsdResponse()->getInvoiceNumber() . '.json';
+                $fileSystem->touch($filePath);
+                $fileSystem->appendToFile($filePath, $jsonContent);
+
+                $invoice->setCopied(true);
+                $this->entityManager->persist($invoice);
             }
-            catch(\IOException $e) {
+            catch(IOExceptionInterface $e) {
+                throw new \Exception("Bad Request");
             }
         }
 
-
-
+        $this->entityManager->flush();
     }
 }

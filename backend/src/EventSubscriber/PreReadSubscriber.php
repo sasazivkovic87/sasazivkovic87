@@ -49,8 +49,8 @@ final class PreReadSubscriber implements EventSubscriberInterface
         $method = $event->getRequest()->getMethod();
         $requestUri = $event->getRequest()->getRequestUri();
 
-        if (Request::METHOD_POST === $method) {
-            if ($requestUri == '/api/invoices') {
+        if (str_contains($requestUri, '/api/invoices')) {
+            if (in_array($method, [Request::METHOD_GET, Request::METHOD_POST])) {
                 // $this->securityCardService->setPin('1234');
                 $cardErrors = $this->securityCardService->cardValidation();
                 if (count($cardErrors) > 0) {
@@ -64,14 +64,17 @@ final class PreReadSubscriber implements EventSubscriberInterface
                     return;
                 }
 
-                $jsonRequest = json_decode($event->getRequest()->getContent(), true);
-                $errors = $this->csdService->validateInvoice($jsonRequest);
-                if (count($errors) > 0) {
-                    $response = [
-                        'message' => 'The request is invalid.',
-                        'modelState' => $errors
-                    ];
-                    $event->setResponse(new JsonResponse($response, Response::HTTP_UNPROCESSABLE_ENTITY));
+                if ($method == Request::METHOD_POST) {                
+                    $jsonRequest = json_decode($event->getRequest()->getContent(), true);
+                    $errors = $this->csdService->validateInvoice($jsonRequest);
+                    if (count($errors) > 0) {
+                        $response = [
+                            'message' => 'The request is invalid.',
+                            'modelState' => $errors
+                        ];
+                        $event->setResponse(new JsonResponse($response, Response::HTTP_UNPROCESSABLE_ENTITY));
+                        return;
+                    }
                 }
             }
         }
